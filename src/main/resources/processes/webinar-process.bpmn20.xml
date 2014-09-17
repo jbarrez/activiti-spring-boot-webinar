@@ -1,13 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/processdef" xmlns:modeler="http://activiti.com/modeler" modeler:version="1.0en" modeler:exportDateTime="20140917221847386" modeler:modelId="1000" modeler:modelVersion="1" modeler:modelLastUpdated="1410985124511">
-  <process id="webinarprocess" name="Webinar process" isExecutable="true">
+  <process id="dogeProcess" name="Webinar process" isExecutable="true">
     <startEvent id="startEvent1"/>
     <subProcess id="sid-9A0D8C79-52E9-4C8E-9264-2F7E20524759" name="subProcess">
-      <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="photos"/>
+      <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="photos" activiti:elementVariable="photoId" />
       
-      <!-- Expression + mock support doesn't seem to work - need to fix, hence using delegate now<serviceTask id="sendPhotoTask" name="Send photo to transformation queue" activiti:expression="${myBean.send(execution)}"/> -->
+      <serviceTask id="sendPhotoTask" name="Send photo to transformation queue" activiti:expression="${photoService.processPhoto(execution.getVariable('photoId'))}"/>
       
-      <serviceTask id="sendPhotoTask" name="Send photo to transformation queue" activiti:class="org.activiti.SomeClass"/>
+      <!-- <serviceTask id="sendPhotoTask" name="Send photo to transformation queue" activiti:class="org.activiti.SomeClass"/> -->
       
       <receiveTask id="wait" name="Wait for transformation response"/>
       <startEvent id="sid-468797D3-BB35-432F-BD71-F876973359A0"/>

@@ -33,7 +33,7 @@ public class FirstTest {
 	public ActivitiRule activitiRule = new ActivitiRule();
 	
 	@Test
-	@Deployment(resources="webinar-process.bpmn20.xml")
+	@Deployment(resources="processes/webinar-process.bpmn20.xml")
 //	@MockServiceTask(id="sendPhotoTask", mockedClassName="org.activiti.standalone.testing.helpers.ServiceTaskTestMock") // TODO: if not set, the mockedClassName should be default. Needs change in Activiti test core
 	@NoOpServiceTasks
 	public void theAwesomeTest() {
