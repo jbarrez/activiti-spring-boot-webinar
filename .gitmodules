@@ -1,0 +1,3 @@
+[submodule "activiti"]
+	path = activiti
+	url = https://github.com/Activiti/Activiti.git
