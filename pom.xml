@@ -12,7 +12,8 @@
   <modules>
   	
 	  <module>demo</module>
-	  <module>activiti</module>
-	
+      <module>activiti/modules/activiti-spring</module>
+      <module>activiti/modules/activiti-spring-boot</module>
+
   </modules>
 </project>
