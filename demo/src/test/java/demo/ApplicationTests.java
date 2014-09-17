@@ -38,12 +38,14 @@ public class ApplicationTests {
 		// Check the process definition
 		Assert.assertEquals(1, repositoryService.createProcessDefinitionQuery().count());
 		
+		// send a photo to REST service
 		// Start the process instance
 		Map<String, Object> variables = new HashMap<String, Object>();
 		variables.put("photos", Arrays.asList(1L, 2L, 3L));
 		ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("dogeProcess", variables);
 		Assert.assertEquals(1, runtimeService.createProcessInstanceQuery().count());
 		
+		// can this be sent to a Spring Integration processor? 
 		// Since we've got 3 photo's in there, should have 3 wait states (the service task has been mocked)
 		List<Execution> waitingExecutions = runtimeService.createExecutionQuery().activityId("wait").list();
 		Assert.assertEquals(3, waitingExecutions.size());
