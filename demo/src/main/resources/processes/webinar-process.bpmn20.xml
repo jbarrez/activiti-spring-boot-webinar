@@ -5,7 +5,7 @@
     <subProcess id="sid-9A0D8C79-52E9-4C8E-9264-2F7E20524759" name="subProcess">
       <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="photos" activiti:elementVariable="photoId" />
       
-      <serviceTask id="sendPhotoTask" name="Send photo to transformation queue" activiti:expression="${photoService.processPhoto(execution.getVariable('photoId'))}"/>
+      <serviceTask id="sendPhotoTask" name="Send photo to transformation queue" activiti:expression="${photoService.processPhoto(photoId)}"/>
       
       <!-- <serviceTask id="sendPhotoTask" name="Send photo to transformation queue" activiti:class="org.activiti.SomeClass"/> -->
       
