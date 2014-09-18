@@ -2,13 +2,16 @@ package demo;
 
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.activiti.engine.HistoryService;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.impl.util.CollectionUtil;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.Execution;
@@ -36,6 +39,9 @@ public class ApplicationTests {
 	
 	@Autowired
 	private TaskService taskService;
+	
+	@Autowired
+	private HistoryService historyService;
 	
 	@Autowired
 	private PhotoRepository photoRepository;
@@ -87,5 +93,17 @@ public class ApplicationTests {
 		// process should be ended
 		Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
 	}
+	
+	@Test
+	public void demoHistory() {
+	
+		historyService.createHistoricProcessInstanceQuery().count();
+		
+		historyService.createHistoricProcessInstanceQuery().startedAfter(new Date()).startedBefore(new Date()).list();
+		
+		List<HistoricTaskInstance> historyService.createHistoricTaskInstanceQuery().finished().taskAssignee("jlong").list();
+		
+	}
+	
 
 }

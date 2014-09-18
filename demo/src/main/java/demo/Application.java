@@ -126,7 +126,7 @@ class ActivitiDiagramController {
 		                .getBpmnModel(processDefinition.getId()));
 
 		return new InputStreamResource(is);
-
+		
 	}
 
 }
