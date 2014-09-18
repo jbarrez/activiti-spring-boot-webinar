@@ -1,5 +1,6 @@
 package demo;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -9,9 +10,13 @@ import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.impl.util.CollectionUtil;
+import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
+import org.activiti.image.ProcessDiagramGenerator;
+import org.activiti.image.impl.DefaultProcessDiagramGenerator;
+import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +43,7 @@ public class ApplicationTests {
 	@Test
 	public void contextLoads() {
 		
+	
 //		Photo photo = new Photo("one");
 //		photoRepository.save(photo);
 //		
