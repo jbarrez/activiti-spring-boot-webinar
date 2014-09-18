@@ -38,16 +38,16 @@ public class ApplicationTests {
 	@Test
 	public void contextLoads() {
 		
-		Photo photo = new Photo("one");
-		photoRepository.save(photo);
-		
-		Photo photo2 = new Photo("two");
-		photoRepository.save(photo2);
-		
-		Photo photo3 = new Photo("three");
-		photoRepository.save(photo3);
-		
-		List<Photo> photos = Arrays.asList(photo, photo2, photo3);
+//		Photo photo = new Photo("one");
+//		photoRepository.save(photo);
+//		
+//		Photo photo2 = new Photo("two");
+//		photoRepository.save(photo2);
+//		
+//		Photo photo3 = new Photo("three");
+//		photoRepository.save(photo3);
+//		
+//		List<Photo> photos = Arrays.asList(photo, photo2, photo3);
 		
 		// Check the process definition
 		Assert.assertEquals(1, repositoryService.createProcessDefinitionQuery().count());
@@ -55,7 +55,7 @@ public class ApplicationTests {
 		// send a photo to REST service
 		// Start the process instance
 		Map<String, Object> variables = new HashMap<String, Object>();
-		variables.put("photos", photos);
+		variables.put("photos", Arrays.asList(1L, 2L, 3L));
 		ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("dogeProcess", variables);
 		Assert.assertEquals(1, runtimeService.createProcessInstanceQuery().count());
 		
