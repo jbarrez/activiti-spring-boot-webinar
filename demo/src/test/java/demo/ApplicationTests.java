@@ -1,17 +1,25 @@
 package demo;
 
+import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.activiti.engine.HistoryService;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.impl.util.CollectionUtil;
+import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
+import org.activiti.image.ProcessDiagramGenerator;
+import org.activiti.image.impl.DefaultProcessDiagramGenerator;
+import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,21 +42,25 @@ public class ApplicationTests {
 	private TaskService taskService;
 	
 	@Autowired
+	private HistoryService historyService;
+	
+	@Autowired
 	private PhotoRepository photoRepository;
 
 	@Test
 	public void contextLoads() {
 		
-		Photo photo = new Photo("one");
-		photoRepository.save(photo);
-		
-		Photo photo2 = new Photo("two");
-		photoRepository.save(photo2);
-		
-		Photo photo3 = new Photo("three");
-		photoRepository.save(photo3);
-		
-		List<Photo> photos = Arrays.asList(photo, photo2, photo3);
+	
+//		Photo photo = new Photo("one");
+//		photoRepository.save(photo);
+//		
+//		Photo photo2 = new Photo("two");
+//		photoRepository.save(photo2);
+//		
+//		Photo photo3 = new Photo("three");
+//		photoRepository.save(photo3);
+//		
+//		List<Photo> photos = Arrays.asList(photo, photo2, photo3);
 		
 		// Check the process definition
 		Assert.assertEquals(1, repositoryService.createProcessDefinitionQuery().count());
@@ -56,7 +68,7 @@ public class ApplicationTests {
 		// send a photo to REST service
 		// Start the process instance
 		Map<String, Object> variables = new HashMap<String, Object>();
-		variables.put("photos", photos);
+		variables.put("photos", Arrays.asList(1L, 2L, 3L));
 		ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("dogeProcess", variables);
 		Assert.assertEquals(1, runtimeService.createProcessInstanceQuery().count());
 		
@@ -82,6 +94,18 @@ public class ApplicationTests {
 		// process should be ended
 		Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
 	}
+	
+	@Test
+	public void demoHistory() {
+	
+		historyService.createHistoricProcessInstanceQuery().count();
+		
+		historyService.createHistoricProcessInstanceQuery().startedAfter(new Date()).startedBefore(new Date()).list();
+		
+		List<HistoricTaskInstance> historyService.createHistoricTaskInstanceQuery().finished().taskAssignee("jlong").list();
+		
+	}
+	
 
 }
 */
