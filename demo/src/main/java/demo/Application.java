@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableAutoConfiguration
 public class Application {
+
     @Bean
     CommandLineRunner seedUsersAndGroups(IdentityService identityService) {
         return args -> {
@@ -44,24 +45,4 @@ public class Application {
         SpringApplication.run(Application.class, args);
     }
 
-}/*
-
-// todo maybe we can contribute some sort of HealthIndicator based on Activiti?
-class ActivitiDiagramController {
-    @Autowired
-    RepositoryService repositoryService;
-
-    @RequestMapping(value = "/processes/diagrams/{pd}", produces = MediaType.IMAGE_PNG_VALUE)
-    Resource renderProcessDiagram(@PathVariable String pd) {
-        ProcessDefinition processDefinition = repositoryService
-                .createProcessDefinitionQuery().processDefinitionKey(pd).singleResult();
-        ProcessDiagramGenerator processDiagramGenerator = new DefaultProcessDiagramGenerator();
-        InputStream is = processDiagramGenerator
-                .generatePngDiagram(repositoryService
-                        .getBpmnModel(processDefinition.getId()));
-
-        return new InputStreamResource(is);
-
-    }
-
-}  */
+}
