@@ -26,11 +26,12 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
             <version>${activiti.version}</version>
         </dependency>
-      <!--  <dependency>
+
+        <dependency>
             <groupId>org.activiti</groupId>
             <artifactId>spring-boot-starter-rest-api</artifactId>
             <version>${activiti.version}</version>
-        </dependency>-->
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
