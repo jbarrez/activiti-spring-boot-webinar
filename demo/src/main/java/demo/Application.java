@@ -111,7 +111,6 @@ class PhotoService {
         }
 
         Task reviewTask = taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult();
-
         taskService.complete(reviewTask.getId(), Collections.singletonMap("approved", true));
 
         long count = runtimeService.createProcessInstanceQuery().count();
