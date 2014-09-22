@@ -3,9 +3,9 @@
   <process id="dogeProcess" name="Webinar process" isExecutable="true">
     <startEvent id="startEvent1"/>
     <subProcess id="sid-9A0D8C79-52E9-4C8E-9264-2F7E20524759" name="subProcess">
-      <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="photos" activiti:elementVariable="photoId" />
+      <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="photos" activiti:elementVariable="photo" />
       
-      <serviceTask id="sendPhotoTask" name="Send photo to transformation queue" activiti:expression="${photoService.processPhoto(photoId)}"/>
+      <serviceTask id="sendPhotoTask" name="Send photo to transformation queue" activiti:expression="${photoService.processPhoto(photo.id)}"/>
       
       <!-- <serviceTask id="sendPhotoTask" name="Send photo to transformation queue" activiti:class="org.activiti.SomeClass"/> -->
       
