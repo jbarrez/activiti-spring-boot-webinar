@@ -10,15 +10,21 @@
 <body>
 <h1>Do You Approve?</h1>
 
-<form method="post" action="/approve">
+<div th:unless="${task == null}">
+    <form method="post" action="/approve">
 
-    <div th:each="photo : ${photos}">
-        <img width="300" th:src="@{|/image/${photo.id}|}"/>
-    </div>
+        <div th:each="photo : ${photos}">
+            <img width="300" th:src="@{|/image/${photo.id}|}"/>
+        </div>
 
+        <input type="hidden" name="taskId" th:value="${task.id}"/>
 
-    <input type="submit" value="true"/>
-    <input type="submit" value="false"/>
-</form>
+        <input type="submit" name="approved" value="true"/>
+        <input type="submit" name="approved" value="false"/>
+    </form>
+</div>
+<div th:if="${task == null}">
+    No pending tasks...
+</div>
 </body>
 </html>

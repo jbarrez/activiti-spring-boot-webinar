@@ -1,5 +1,7 @@
 package demo;
 
+import doge.photo.DogePhotoManipulator;
+import doge.photo.PhotoManipulator;
 import org.activiti.engine.IdentityService;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.RuntimeService;
@@ -73,7 +75,8 @@ public class Application {
     }
 
     @Bean
-    IntegrationFlow inboundProcess(ActivitiInboundGateway activitiInboundGateway) {
+    IntegrationFlow inboundProcess(
+            ActivitiInboundGateway activitiInboundGateway, PhotoService photoService) {
         return IntegrationFlows
                 .from(activitiInboundGateway)
                 .handle(
@@ -81,7 +84,12 @@ public class Application {
                             @Override
                             public Object handle(ActivityExecution execution, Map<String, Object> headers) {
 
-                                System.out.println("handling execution " + headers.toString());
+                                Photo photo = (Photo) execution.getVariable("photo");
+                                Long photoId = photo.getId();
+                                System.out.println("integration: handling execution " + headers.toString());
+                                System.out.println("integration: handling photo #" + photoId);
+
+                                photoService.dogifyPhoto(photo);
 
                                 return MessageBuilder.withPayload(execution)
                                         .setHeader("processed", (Object) true)
@@ -92,6 +100,16 @@ public class Application {
                 .get();
     }
 
+    @Bean
+    DogePhotoManipulator dogePhotoManipulator() {
+        DogePhotoManipulator dogePhotoManipulator = new DogePhotoManipulator();
+        dogePhotoManipulator.addTextOverlay("pivotal", "abstractfactorybean", "java");
+        dogePhotoManipulator.addTextOverlay("spring", "annotations", "boot");
+        dogePhotoManipulator.addTextOverlay("code", "semicolonfree", "groovy");
+        dogePhotoManipulator.addTextOverlay("clean", "juergenized", "spring");
+        dogePhotoManipulator.addTextOverlay("workflow", "activiti", "BPM");
+        return dogePhotoManipulator;
+    }
 
     @Bean
     CommandLineRunner init(IdentityService identityService) {
@@ -214,7 +232,7 @@ class PhotoService {
 
     public InputStream readPhoto(Photo photo) {
         try {
-            return new FileInputStream( new File(this.uploadDirectory.getFile(), Long.toString(photo.getId())));
+            return new FileInputStream(new File(this.uploadDirectory.getFile(), Long.toString(photo.getId())));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -227,8 +245,20 @@ class PhotoService {
     }
 
     public ProcessInstance launchPhotoProcess(List<Photo> photos) {
-        return runtimeService.startProcessInstanceByKey( "photoProcess", Collections.singletonMap("photos", photos));
+        return runtimeService.startProcessInstanceByKey("photoProcess", Collections.singletonMap("photos", photos));
     }
+
+    public void dogifyPhoto(Photo photo) {
+        try {
+            InputStream inputStream = this.photoManipulator.manipulate(() -> this.readPhoto(photo)).getInputStream();
+            writePhoto(photo, inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Autowired
+    private PhotoManipulator photoManipulator;
 }
 
 
@@ -283,7 +313,7 @@ class PhotoMvcController {
     String approveTask(@RequestParam String taskId, @RequestParam String approved) {
         boolean isApproved = !(approved == null || approved.trim().equals("") || approved.toLowerCase().contains("f") || approved.contains("0"));
         this.taskService.complete(taskId, Collections.singletonMap("approved", isApproved));
-        return "approve";
+        return "redirect:approve";
     }
 
     @RequestMapping(value = "/approve", method = RequestMethod.GET)
