@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
@@ -44,14 +47,14 @@ public class Application {
 
     private final Log logger = LogFactory.getLog(getClass());
 
-/*    @Configuration
+    @Configuration
     public static class SimpleMvcConfiguration
             extends WebMvcConfigurerAdapter {
         @Override
         public void addViewControllers(ViewControllerRegistry registry) {
-            registry.addViewController("/upload.php").setViewName("upload");
+            registry.addViewController("/").setViewName("upload");
         }
-    }*/
+    }
 
 /*
     @Configuration
@@ -69,23 +72,24 @@ public class Application {
      * }
      * }
      */
-    InputStream bytes(String fn) {
-        try {
-            return new FileInputStream(new File(String.format(
-                    System.getProperty("user.home") + "/Desktop/%s", fn)));
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
 
     @Bean
-    CommandLineRunner photoProcess(PhotoService photoService) {
+    CommandLineRunner photoProcess(
+            PhotoService photoService,
+            ResourcePatternResolver resolver) {
         return args -> {
-
+            Resource[] resources = resolver.getResources(
+                    "file://"+ System.getProperty("user.home") + "/Desktop/photos/**.jpg");
             Long userId = 242L;
-            List<Photo> photos = Arrays.asList("2.jpg", "1.jpg").stream()
-                    .map(pn -> photoService.createPhoto(userId, bytes(pn)))
+            List<Photo> photos = Arrays.asList(resources).stream()
+                    .map(pn -> {
+                        try {
+                            return photoService.createPhoto(userId, pn.getInputStream());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
                     .collect(Collectors.toList());
 
             ProcessInstance processInstance = photoService.launchPhotoProcess(photos);
@@ -108,10 +112,13 @@ interface PhotoRepository extends JpaRepository<Photo, Long> {
 
 @Entity
 class Photo {
+
     @Id
     @GeneratedValue
     private Long id;
+
     private String userId;
+
     private boolean processed;
 
     public boolean isProcessed() {
@@ -135,7 +142,6 @@ class Photo {
     }
 
     public Photo(String userId, boolean processed) {
-
         this.userId = userId;
         this.processed = processed;
     }
@@ -236,10 +242,9 @@ class UploadController {
     @Autowired
     private PhotoService photoService;
 
-    @RequestMapping(method = RequestMethod.POST, value = "/up")
+    @RequestMapping(method = RequestMethod.POST, value = "/upload")
     public void upload(MultipartHttpServletRequest request) {
-        Optional.ofNullable(request.getMultiFileMap())
-                .ifPresent(m -> m.forEach((k, v) -> System.out.println(k + '=' + v.toString())));
+        Optional.ofNullable(request.getMultiFileMap()).ifPresent(m -> m.forEach((k, v) -> System.out.println(k + '=' + v.toString())));
     }
 
 
