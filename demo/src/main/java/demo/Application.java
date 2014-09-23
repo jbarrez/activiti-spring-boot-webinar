@@ -5,6 +5,8 @@ import org.activiti.engine.TaskService;
 import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.h2.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +24,6 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.annotation.PostConstruct;
@@ -30,13 +31,18 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.io.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Configuration
 @ComponentScan
 @EnableAutoConfiguration
 public class Application {
+
+    private final Log logger = LogFactory.getLog(getClass());
 
 /*    @Configuration
     public static class SimpleMvcConfiguration
@@ -73,8 +79,9 @@ public class Application {
         }
     }
 
+
     @Bean
-      CommandLineRunner photoProcess(PhotoService photoService, RuntimeService runtimeService, TaskService taskService) {
+    CommandLineRunner photoProcess(PhotoService photoService) {
         return args -> {
 
             Long userId = 242L;
@@ -83,26 +90,12 @@ public class Application {
                     .collect(Collectors.toList());
 
             ProcessInstance processInstance = photoService.launchPhotoProcess(photos);
-            System.out.println("launched process " + processInstance.getProcessDefinitionId() + '.');
 
-            photos.forEach(p -> {
-                Execution execution = runtimeService.createExecutionQuery()
-                        .processInstanceId(processInstance.getId())
-                        .activityId("wait")
-                        .variableValueEquals(p).singleResult();
-                runtimeService.signal(execution.getId());
-            });
+            logger.info("launched process " + processInstance.getProcessDefinitionId() + '.');
 
-            Task task = taskService.createTaskQuery()
-                    .processInstanceId(processInstance.getId())
-                    .taskCandidateGroup("photoReviewers").singleResult();
-            System.out.println("Task name = " + task.getName());
+            photos.forEach(photo -> photoService.completeProcessingPhoto(processInstance.getId(), photo));
 
-            ((List<Photo>)taskService.getVariable(task.getId(), "photos")).forEach( p -> System.out.println( "Reviewing photo#" + p.getId() + ". "));
-
-            taskService.complete(task.getId(), Collections.singletonMap("approved", true));
-
-
+            photoService.approvePhotos(processInstance.getId(), true);
         };
     }
 
@@ -153,32 +146,36 @@ class Photo {
 @Transactional
 class PhotoService {
 
+    private Log logger = LogFactory.getLog(getClass());
+
     @PostConstruct
     public void beforeService() throws Exception {
-        File where = this.uploadDirectory.getFile();
-        Assert.isTrue(where.exists() || where.mkdirs(), "the " + where.getAbsolutePath() + " folder must exist!");
+        File uploadDir = this.uploadDirectory.getFile();
+        Assert.isTrue(uploadDir.exists() || uploadDir.mkdirs(), "the " + uploadDir.getAbsolutePath() + " folder must exist!");
     }
 
-    @Value("file://#{ systemProperties['user.home']}/Desktop/uploads")
+    @Autowired
+    private TaskService taskService;
+
+    @Value("file://#{ systemProperties['user.home'] }/Desktop/uploads")
     private Resource uploadDirectory;
 
     @Autowired
     private RuntimeService runtimeService;
 
+
     @Autowired
     private PhotoRepository photoRepository;
 
-    private String photoProcessKey = "photoProcess";
-
-    private File forPhoto(Photo photo) throws IOException {
+    protected File forPhoto(Photo photo) throws IOException {
         return new File(this.uploadDirectory.getFile(), Long.toString(photo.getId()));
     }
 
-    private InputStream readPhoto(Photo photo) throws IOException {
+    protected InputStream readPhoto(Photo photo) throws IOException {
         return new FileInputStream(this.forPhoto(photo));
     }
 
-    private void writePhoto(Photo photo, InputStream inputStream) {
+    protected void writePhoto(Photo photo, InputStream inputStream) {
         try {
             try (InputStream input = inputStream; FileOutputStream output = new FileOutputStream(this.forPhoto(photo))) {
                 IOUtils.copy(input, output);
@@ -188,6 +185,8 @@ class PhotoService {
         }
     }
 
+
+    /// step 0
     public Photo createPhoto(Long userId, InputStream bytesForImage) {
         Photo photo = this.photoRepository.save(new Photo(Long.toString(userId), false));
         writePhoto(photo, bytesForImage);
@@ -197,45 +196,51 @@ class PhotoService {
     /// step 1
     public ProcessInstance launchPhotoProcess(List<Photo> photos) {
         return runtimeService.startProcessInstanceByKey(
-                this.photoProcessKey, Collections.singletonMap("photos", photos));
+                "photoProcess", Collections.singletonMap("photos", photos));
     }
 
     /// step 2
-    public void processSingleUploadedPhoto(Photo photo) {
-        System.out.println("processing photo#" + photo.getId());
+    public void startProcessingPhoto(/*String processInstanceId,*/ Photo photo) {
+        logger.info("processing photo #" + photo.getId());
     }
 
     /// step 3
+    public void completeProcessingPhoto(String processInstanceId, Photo p) {
+        Execution execution = runtimeService.createExecutionQuery()
+                .processInstanceId(processInstanceId)
+                .activityId("wait")
+                .variableValueEquals(p)
+                .singleResult();
+        runtimeService.signal(execution.getId());
+    }
+
+    /// step 4
+    public void approvePhotos(String processInstanceId, boolean approve) {
+        Task task = taskService.createTaskQuery()
+                .processInstanceId(processInstanceId)
+                .taskCandidateGroup("photoReviewers")
+                .singleResult();
+
+        logger.info("task name = " + task.getName());
+
+        List<Photo> photos = (List<Photo>) taskService.getVariable(task.getId(), "photos");
+        photos.forEach(p -> logger.info("reviewing photo #" + p.getId() + ". "));
+        taskService.complete(task.getId(), Collections.singletonMap("approved", approve));
+    }
 
 }
 
-
-class PhotoUploadForm {
-    private List<MultipartFile> files = new ArrayList<>();
-
-    public List<MultipartFile> getFiles() {
-        return files;
-    }
-
-    public void setFiles(List<MultipartFile> files) {
-        this.files = files;
-    }
-}
 
 @RestController
 class UploadController {
 
-    private final RuntimeService runtimeService;
-
-
     @Autowired
-    public UploadController(RuntimeService runtimeService) {
-        this.runtimeService = runtimeService;
-    }
+    private PhotoService photoService;
 
     @RequestMapping(method = RequestMethod.POST, value = "/up")
     public void upload(MultipartHttpServletRequest request) {
-        Optional.ofNullable(request.getMultiFileMap()).ifPresent(m -> m.forEach((k, v) -> System.out.println(k + '=' + v.toString())));
+        Optional.ofNullable(request.getMultiFileMap())
+                .ifPresent(m -> m.forEach((k, v) -> System.out.println(k + '=' + v.toString())));
     }
 
 

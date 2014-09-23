@@ -3,18 +3,19 @@
     <process id="photoProcess" name="DogeProcess" isExecutable="true">
         <startEvent id="startEvent1"/>
         <subProcess id="sid-1AA38D08-310B-4BFE-A6AD-F32488643000" name="subProcess">
-            <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="photos" activiti:elementVariable="photo"/>
-            <!--
-                for Spring Integration: we'll use a delegateExpression!!
-            -->
-            <serviceTask id="sid-FCFA0F9D-8796-43E2-ACFD-13AF3465F929" name="Send to photo processing service"
-                         activiti:expression="${photoService.processSingleUploadedPhoto(photo)}"/>
 
+            <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="photos" activiti:elementVariable="photo"/>
+
+            <serviceTask id="sid-FCFA0F9D-8796-43E2-ACFD-13AF3465F929" name="Send to photo processing service" activiti:expression="${photoService.startProcessingPhoto(photo)}"/>
 
             <startEvent id="sid-821438D0-CD00-43F1-A847-42112E44BA12"/>
+
             <receiveTask id="wait" name="Wait for completion"/>
-            <sequenceFlow id="sid-4B4908D7-A6A3-45B6-9267-D3C355154510" sourceRef="sid-821438D0-CD00-43F1-A847-42112E44BA12" targetRef="sid-FCFA0F9D-8796-43E2-ACFD-13AF3465F929"/>
+
             <sequenceFlow id="sid-3667040B-ED6C-424E-BFAD-69718B40FD1C" sourceRef="sid-FCFA0F9D-8796-43E2-ACFD-13AF3465F929" targetRef="wait"/>
+
+            <sequenceFlow id="sid-4B4908D7-A6A3-45B6-9267-D3C355154510" sourceRef="sid-821438D0-CD00-43F1-A847-42112E44BA12" targetRef="sid-FCFA0F9D-8796-43E2-ACFD-13AF3465F929"/>
+
         </subProcess>
         <sequenceFlow id="sid-13DC3678-E57E-4E0B-9F80-55E11BF7304F" sourceRef="startEvent1" targetRef="sid-1AA38D08-310B-4BFE-A6AD-F32488643000"/>
         <boundaryEvent id="sid-CF518067-8143-4CC3-AE33-C3FE326E9EC3" attachedToRef="sid-1AA38D08-310B-4BFE-A6AD-F32488643000" cancelActivity="true">
