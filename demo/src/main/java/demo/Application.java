@@ -25,13 +25,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.support.GenericHandler;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +48,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.io.*;
+import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,10 +58,23 @@ import java.util.stream.Collectors;
 public class Application {
 
     @Configuration
-    static class SimpleMvcConfiguration extends WebMvcConfigurerAdapter {
+    static class MvcConfiguration extends WebMvcConfigurerAdapter {
         @Override
         public void addViewControllers(ViewControllerRegistry registry) {
             registry.addViewController("/").setViewName("upload");
+        }
+    }
+
+    @Configuration
+    static class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+        protected void configure(HttpSecurity http) throws Exception {
+            http
+                    .authorizeRequests()
+                    .antMatchers("/approve").hasAuthority("photoReviewers")
+                    .antMatchers("/").authenticated()
+                    .and()
+                    .csrf().disable()
+                    .httpBasic();
         }
     }
 
@@ -118,18 +132,15 @@ public class Application {
             public void run(String... strings) throws Exception {
 
                 // install groups & users
-                Group photoReviewersGroup = group("photoReviewers");
-                Group usersGroup = group("users");
-                Group adminGroup = group("admins");
+                Group approvers = group("photoReviewers");
+                Group uploaders = group("photoUploaders");
 
                 User joram = user("jbarrez", "Joram", "Barrez");
-                identityService.createMembership(joram.getId(), photoReviewersGroup.getId());
-                identityService.createMembership(joram.getId(), usersGroup.getId());
-                identityService.createMembership(joram.getId(), adminGroup.getId());
+                identityService.createMembership(joram.getId(), approvers.getId());
+                identityService.createMembership(joram.getId(), uploaders.getId());
 
                 User josh = user("jlong", "Josh", "Long");
-                identityService.createMembership(josh.getId(), photoReviewersGroup.getId());
-                identityService.createMembership(josh.getId(), usersGroup.getId());
+                identityService.createMembership(josh.getId(), uploaders.getId());
             }
 
             private User user(String userName, String f, String l) {
@@ -238,8 +249,8 @@ class PhotoService {
         }
     }
 
-    public Photo createPhoto(Long userId, InputStream bytesForImage) {
-        Photo photo = this.photoRepository.save(new Photo(Long.toString(userId), false));
+    public Photo createPhoto(String userId, InputStream bytesForImage) {
+        Photo photo = this.photoRepository.save(new Photo((userId), false));
         writePhoto(photo, bytesForImage);
         return photo;
     }
@@ -274,11 +285,11 @@ class PhotoMvcController {
     @Autowired
     private TaskService taskService;
 
-    public static final Long USER_ID = 24242L; ///TODO fixme by plucking this from the Spring Security Principal
 
     @RequestMapping(method = RequestMethod.POST, value = "/upload")
-    ResponseEntity<?> upload(MultipartHttpServletRequest request) {
+    String upload(MultipartHttpServletRequest request, Principal principal) {
 
+        System.out.println("uploading for " + principal.toString());
         Optional.ofNullable(request.getMultiFileMap()).ifPresent(m -> {
 
             // gather all the MFs in one collection
@@ -290,7 +301,7 @@ class PhotoMvcController {
             // convert them all into `Photo`s
             List<Photo> photos = multipartFiles.stream().map(f -> {
                 try {
-                    return this.photoService.createPhoto(USER_ID, f.getInputStream());
+                    return this.photoService.createPhoto(principal.getName(), f.getInputStream());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -300,7 +311,7 @@ class PhotoMvcController {
                     this.photoService.launchPhotoProcess(photos).getId());
 
         });
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return "redirect:/";
     }
 
     @RequestMapping(value = "/image/{id}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
