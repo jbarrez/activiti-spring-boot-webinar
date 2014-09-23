@@ -71,9 +71,8 @@ public class Application {
      */
     InputStream bytes(String fn) {
         try {
-            FileInputStream fileInputStream =
-                    new FileInputStream(new File(String.format("/Users/jlong/Desktop/%s", fn)));
-            return fileInputStream;
+            return new FileInputStream(new File(String.format(
+                    System.getProperty("user.home") + "/Desktop/%s", fn)));
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
