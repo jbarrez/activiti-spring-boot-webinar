@@ -1,0 +1,3 @@
+[submodule "activiti"]
+	path = activiti
+	url = git@github.com:jbarrez/Activiti.git
