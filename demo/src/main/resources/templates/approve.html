@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>
+        Photo Approval
+    </title>
+
+</head>
+<body>
+<h1>Do You Approve?</h1>
+
+<form method="post" action="/approve">
+
+    <div th:each="photo : ${photos}">
+        <img width="300" th:src="@{|/image/${photo.id}|}"/>
+    </div>
+
+
+    <input type="submit" value="true"/>
+    <input type="submit" value="false"/>
+</form>
+</body>
+</html>

@@ -44,6 +44,11 @@
         </dependency>
         <dependency>
             <groupId>org.activiti</groupId>
+            <artifactId>spring-boot-starter-integration</artifactId>
+            <version>${activiti.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.activiti</groupId>
             <artifactId>spring-boot-starter-jpa</artifactId>
             <version>${activiti.version}</version>
         </dependency>
@@ -51,11 +56,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
-    <!--    <dependency>
-            <groupId>org.activiti</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-            <version>${activiti.version}</version>
-        </dependency>-->
+        <!--    <dependency>
+                <groupId>org.activiti</groupId>
+                <artifactId>spring-boot-starter-security</artifactId>
+                <version>${activiti.version}</version>
+            </dependency>-->
 
     </dependencies>
 
