@@ -1,11 +1,12 @@
-Code for the Activiti & Spring Boot webinar 
-============================
+Code for the Activiti & Spring Boot webinar  (http://www.jorambarrez.be/blog/2014/09/29/webinar-on-youtube/)
 
-This process demonstrates how to use Spring Boot w/ Activiti. 
+First, clone the latest and greatest Activiti from https://github.com/Activiti/Activiti
 
-This code uses a `submodule`: 
+On the root, execute 'mvn -Pcheck clean install -DskipTests' to get the correct dependencies. 
+Go to modules/activiti-spring-boot/ and execute 'mvn clean install -DskipTests'
 
-* `git clone git@github.com:jbarrez/activiti-spring-boot-webinar.git` 
-* `cd activiti-spring-boot-webinar`
-* `git submodule init`
-* `git submodule update`
+(they are not part of the default profile yet - will fix that soon)
+
+Now you can import this demo project in your IDE.
+
+
