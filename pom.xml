@@ -24,6 +24,8 @@
             <artifactId>spring-doge-photo</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+        
+		<!-- Activiti -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -64,6 +66,18 @@
         <dependency>
             <groupId>org.activiti</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+            <version>${activiti.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.activiti</groupId>
+            <artifactId>spring-boot-starter-rest-api</artifactId>
+            <version>${activiti.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.activiti</groupId>
+            <artifactId>spring-boot-starter-integration</artifactId>
             <version>${activiti.version}</version>
         </dependency>
 

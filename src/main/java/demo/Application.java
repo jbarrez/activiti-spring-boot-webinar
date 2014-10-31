@@ -2,6 +2,7 @@ package demo;
 
 import doge.photo.DogePhotoManipulator;
 import doge.photo.PhotoManipulator;
+
 import org.activiti.engine.IdentityService;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.RuntimeService;
@@ -13,6 +14,7 @@ import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
 import org.activiti.spring.integration.ActivitiInboundGateway;
 import org.activiti.spring.integration.IntegrationActivityBehavior;
+import org.apache.catalina.security.SecurityConfig;
 import org.h2.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -31,6 +35,7 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.support.GenericHandler;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
@@ -47,17 +52,22 @@ import javax.annotation.PostConstruct;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+
 import java.io.*;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.springframework.core.Ordered;
+
 @Configuration
 @ComponentScan
 @EnableAutoConfiguration
+//@Order(Ordered.LOWEST_PRECEDENCE - 50000)
 public class Application {
 
     @Configuration
+    @ComponentScan
     static class MvcConfiguration extends WebMvcConfigurerAdapter {
         @Override
         public void addViewControllers(ViewControllerRegistry registry) {
@@ -66,6 +76,7 @@ public class Application {
     }
 
     @Configuration
+    @Order(200)//Workaround to fix up the @Order 100 has been taken.
     static class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         protected void configure(HttpSecurity http) throws Exception {
             http
